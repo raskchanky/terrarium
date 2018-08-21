@@ -1,0 +1,29 @@
+name: terrarium
+
+# Ensure the network is created first; otherwise they ALL try to do it
+# at once and it's not good.
+on_project_start: docker network create terrarium_habitat && sleep 3
+on_project_stop: ./scripts/capture_logs.sh && docker-compose down
+startup_window: console
+
+windows:
+  - bastion:
+    - docker-compose up bastion
+  - alpha:
+    - docker-compose up alpha
+  - beta:
+    - docker-compose up beta
+  - gamma:
+    - docker-compose up gamma
+  - delta:
+    - docker-compose up delta
+  - console:
+    - docker-compose run console
+    - hab pkg install core/curl -b -f
+    - hab pkg install core/jq-static -b -f
+    # - hab svc load core/redis --remote-sup=alpha.habitat.dev
+    # - hab svc load core/redis --remote-sup=beta.habitat.dev
+    # - hab svc load core/redis --remote-sup=gamma.habitat.dev
+    # - hab svc load core/redis --remote-sup=delta.habitat.dev
+  - shell:
+    - bash

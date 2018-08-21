@@ -1,0 +1,114 @@
+version: '3.2'
+services:
+  bastion:
+    image: ${IMAGE}
+    command:
+      - "run"
+      - "--listen-ctl=0.0.0.0:9632"
+      - "--permanent-peer"
+    hostname: bastion
+    domainname: habitat.dev
+    volumes:
+      - type: bind
+        source: ./data/bastion/hab-sup-default
+        target: /hab/sup/default/
+        read_only: false
+    environment:
+      - HAB_NONINTERACTIVE=1
+    networks:
+      habitat:
+        aliases:
+          - bastion.habitat.dev
+
+  alpha:
+    image: ${IMAGE}
+    command:
+      - "run"
+      - "--listen-ctl=0.0.0.0:9632"
+      - "--peer=bastion.habitat.dev"
+    hostname: alpha
+    domainname: habitat.dev
+    volumes:
+      - type: bind
+        source: ./data/alpha/hab-sup-default
+        target: /hab/sup/default/
+        read_only: false
+    environment:
+      - HAB_NONINTERACTIVE=1
+    networks:
+      habitat:
+        aliases:
+          - alpha.habitat.dev
+  beta:
+    image: ${IMAGE}
+    command:
+      - "run"
+      - "--listen-ctl=0.0.0.0:9632"
+      - "--peer=bastion.habitat.dev"
+    hostname: beta
+    domainname: habitat.dev
+    volumes:
+      - type: bind
+        source: ./data/beta/hab-sup-default
+        target: /hab/sup/default/
+        read_only: false
+    environment:
+      - HAB_NONINTERACTIVE=1
+    networks:
+      habitat:
+        aliases:
+          - beta.habitat.dev
+  gamma:
+    image: ${IMAGE}
+    command:
+      - "run"
+      - "--listen-ctl=0.0.0.0:9632"
+      - "--peer=bastion.habitat.dev"
+    hostname: gamma
+    domainname: habitat.dev
+    volumes:
+      - type: bind
+        source: ./data/gamma/hab-sup-default
+        target: /hab/sup/default/
+        read_only: false
+    environment:
+      - HAB_NONINTERACTIVE=1
+    networks:
+      habitat:
+        aliases:
+          - gamma.habitat.dev
+  delta:
+    image: ${IMAGE}
+    command:
+      - "run"
+      - "--listen-ctl=0.0.0.0:9632"
+      - "--peer=bastion.habitat.dev"
+    hostname: delta
+    domainname: habitat.dev
+    volumes:
+      - type: bind
+        source: ./data/delta/hab-sup-default
+        target: /hab/sup/default/
+        read_only: false
+    environment:
+      - HAB_NONINTERACTIVE=1
+    networks:
+      habitat:
+        aliases:
+          - delta.habitat.dev
+
+  console:
+    image: ${IMAGE}
+    command: sh
+    volumes:
+      - type: bind
+        source: ./data/console/hab-sup-default
+        target: /hab/sup/default/
+        read_only: false
+    environment:
+      - HAB_NONINTERACTIVE=1
+    networks:
+      habitat:
+
+networks:
+  habitat:
