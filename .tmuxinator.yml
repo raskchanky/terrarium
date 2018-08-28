@@ -9,21 +9,25 @@ startup_window: console
 windows:
   - bastion:
     - docker-compose up bastion
-  - alpha:
-    - docker-compose up alpha
-  - beta:
-    - docker-compose up beta
-  - gamma:
-    - docker-compose up gamma
-  - delta:
-    - docker-compose up delta
+  - api:
+    - docker-compose up api
+  - api-proxy:
+    - docker-compose up api-proxy
+  - datastore:
+    - docker-compose up datastore
+  - jobsrv:
+    - docker-compose up jobsrv
+  - originsrv:
+    - docker-compose up originsrv
+  - router:
+    - docker-compose up router
+  - sessionsrv:
+    - docker-compose up sessionsrv
+  - worker:
+    - docker-compose up worker
+  - minio:
+    - docker-compose up minio
   - console:
     - docker-compose run console
     - hab pkg install core/curl -b -f
     - hab pkg install core/jq-static -b -f
-    # - hab svc load core/redis --remote-sup=alpha.habitat.dev
-    # - hab svc load core/redis --remote-sup=beta.habitat.dev
-    # - hab svc load core/redis --remote-sup=gamma.habitat.dev
-    # - hab svc load core/redis --remote-sup=delta.habitat.dev
-  - shell:
-    - bash

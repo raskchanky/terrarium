@@ -1,10 +1,12 @@
-version: '3.2'
+version: '3.3'
 services:
   bastion:
-    image: ${IMAGE}
+    image: habitat/builder-api
     command:
       - "run"
       - "--listen-ctl=0.0.0.0:9632"
+      - "--listen-gossip=0.0.0.0:9638"
+      - "--listen-http=0.0.0.0:9631"
       - "--permanent-peer"
     hostname: bastion
     domainname: habitat.dev
@@ -19,18 +21,22 @@ services:
       habitat:
         aliases:
           - bastion.habitat.dev
-
-  alpha:
-    image: ${IMAGE}
+  api:
+    image: habitat/builder-api
     command:
       - "run"
       - "--listen-ctl=0.0.0.0:9632"
+      - "--listen-gossip=0.0.0.0:9638"
+      - "--listen-http=0.0.0.0:9631"
       - "--peer=bastion.habitat.dev"
-    hostname: alpha
+      - "--strategy=at-once"
+      - "--bind=router:builder-router.default"
+      - "habitat/builder-api"
+    hostname: api
     domainname: habitat.dev
     volumes:
       - type: bind
-        source: ./data/alpha/hab-sup-default
+        source: ./data/api/hab-sup-default
         target: /hab/sup/default/
         read_only: false
     environment:
@@ -38,18 +44,22 @@ services:
     networks:
       habitat:
         aliases:
-          - alpha.habitat.dev
-  beta:
-    image: ${IMAGE}
+          - api.habitat.dev
+  api-proxy:
+    image: habitat/builder-api-proxy
     command:
       - "run"
       - "--listen-ctl=0.0.0.0:9632"
+      - "--listen-gossip=0.0.0.0:9638"
+      - "--listen-http=0.0.0.0:9631"
       - "--peer=bastion.habitat.dev"
-    hostname: beta
+      - "--bind=http:builder-api.default"
+      - "habitat/builder-api-proxy"
+    hostname: api-proxy
     domainname: habitat.dev
     volumes:
       - type: bind
-        source: ./data/beta/hab-sup-default
+        source: ./data/api-proxy/hab-sup-default
         target: /hab/sup/default/
         read_only: false
     environment:
@@ -57,18 +67,20 @@ services:
     networks:
       habitat:
         aliases:
-          - beta.habitat.dev
-  gamma:
-    image: ${IMAGE}
+          - api-proxy.habitat.dev
+  datastore:
+    image: habitat/builder-datastore
     command:
       - "run"
       - "--listen-ctl=0.0.0.0:9632"
+      - "--listen-gossip=0.0.0.0:9638"
+      - "--listen-http=0.0.0.0:9631"
       - "--peer=bastion.habitat.dev"
-    hostname: gamma
+    hostname: datastore
     domainname: habitat.dev
     volumes:
       - type: bind
-        source: ./data/gamma/hab-sup-default
+        source: ./data/datastore/hab-sup-default
         target: /hab/sup/default/
         read_only: false
     environment:
@@ -76,18 +88,24 @@ services:
     networks:
       habitat:
         aliases:
-          - gamma.habitat.dev
-  delta:
-    image: ${IMAGE}
+          - datastore.habitat.dev
+  jobsrv:
+    image: habitat/builder-jobsrv
     command:
       - "run"
       - "--listen-ctl=0.0.0.0:9632"
+      - "--listen-gossip=0.0.0.0:9638"
+      - "--listen-http=0.0.0.0:9631"
       - "--peer=bastion.habitat.dev"
-    hostname: delta
+      - "--strategy=at-once"
+      - "--bind=router:builder-router.default"
+      - "--bind=datastore:builder-datastore.default"
+      - "habitat/builder-jobsrv"
+    hostname: jobsrv
     domainname: habitat.dev
     volumes:
       - type: bind
-        source: ./data/delta/hab-sup-default
+        source: ./data/jobsrv/hab-sup-default
         target: /hab/sup/default/
         read_only: false
     environment:
@@ -95,10 +113,130 @@ services:
     networks:
       habitat:
         aliases:
-          - delta.habitat.dev
-
+          - jobsrv.habitat.dev
+  originsrv:
+    image: habitat/builder-originsrv
+    command:
+      - "run"
+      - "--listen-ctl=0.0.0.0:9632"
+      - "--listen-gossip=0.0.0.0:9638"
+      - "--listen-http=0.0.0.0:9631"
+      - "--peer=bastion.habitat.dev"
+      - "--strategy=at-once"
+      - "--bind=router:builder-router.default"
+      - "--bind=datastore:builder-datastore.default"
+      - "habitat/builder-originsrv"
+    hostname: originsrv
+    domainname: habitat.dev
+    volumes:
+      - type: bind
+        source: ./data/originsrv/hab-sup-default
+        target: /hab/sup/default/
+        read_only: false
+    environment:
+      - HAB_NONINTERACTIVE=1
+    networks:
+      habitat:
+        aliases:
+          - originsrv.habitat.dev
+  router:
+    image: habitat/builder-router
+    command:
+      - "run"
+      - "--listen-ctl=0.0.0.0:9632"
+      - "--listen-gossip=0.0.0.0:9638"
+      - "--listen-http=0.0.0.0:9631"
+      - "--peer=bastion.habitat.dev"
+      - "--strategy=at-once"
+      - "habitat/builder-router"
+    hostname: router
+    domainname: habitat.dev
+    volumes:
+      - type: bind
+        source: ./data/router/hab-sup-default
+        target: /hab/sup/default/
+        read_only: false
+    environment:
+      - HAB_NONINTERACTIVE=1
+    networks:
+      habitat:
+        aliases:
+          - router.habitat.dev
+  sessionsrv:
+    image: habitat/builder-sessionsrv
+    command:
+      - "run"
+      - "--listen-ctl=0.0.0.0:9632"
+      - "--listen-gossip=0.0.0.0:9638"
+      - "--listen-http=0.0.0.0:9631"
+      - "--peer=bastion.habitat.dev"
+      - "--strategy=at-once"
+      - "--bind=router:builder-router.default"
+      - "--bind=datastore:builder-datastore.default"
+      - "habitat/builder-sessionsrv"
+    hostname: sessionsrv
+    domainname: habitat.dev
+    volumes:
+      - type: bind
+        source: ./data/sessionsrv/hab-sup-default
+        target: /hab/sup/default/
+        read_only: false
+    environment:
+      - HAB_NONINTERACTIVE=1
+    networks:
+      habitat:
+        aliases:
+          - sessionsrv.habitat.dev
+  worker:
+    image: habitat/builder-worker
+    command:
+      - "run"
+      - "--listen-ctl=0.0.0.0:9632"
+      - "--listen-gossip=0.0.0.0:9638"
+      - "--listen-http=0.0.0.0:9631"
+      - "--peer=bastion.habitat.dev"
+      - "--strategy=at-once"
+      - "--bind=jobsrv:builder-jobsrv.default"
+      - "--bind=depot:builder-api-proxy.default"
+      - "habitat/builder-worker"
+    hostname: worker
+    domainname: habitat.dev
+    volumes:
+      - type: bind
+        source: ./data/worker/hab-sup-default
+        target: /hab/sup/default/
+        read_only: false
+    environment:
+      - HAB_NONINTERACTIVE=1
+    networks:
+      habitat:
+        aliases:
+          - worker.habitat.dev
+  minio:
+    image: habitat/builder-minio
+    command:
+      - "run"
+      - "--listen-ctl=0.0.0.0:9632"
+      - "--listen-gossip=0.0.0.0:9638"
+      - "--listen-http=0.0.0.0:9631"
+      - "--peer=bastion.habitat.dev"
+      - "--strategy=at-once"
+      - "habitat/builder-minio"
+    hostname: minio
+    domainname: habitat.dev
+    volumes:
+      - type: bind
+        source: ./data/minio/hab-sup-default
+        target: /hab/sup/default/
+        read_only: false
+    environment:
+      - HAB_NONINTERACTIVE=1
+    networks:
+      habitat:
+        aliases:
+          - minio.habitat.dev
   console:
-    image: ${IMAGE}
+    image: habitat/builder-api
     command: sh
     volumes:
       - type: bind
@@ -109,6 +247,5 @@ services:
       - HAB_NONINTERACTIVE=1
     networks:
       habitat:
-
 networks:
   habitat:
