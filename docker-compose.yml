@@ -76,6 +76,7 @@ services:
       - "--listen-gossip=0.0.0.0:9638"
       - "--listen-http=0.0.0.0:9631"
       - "--peer=bastion.habitat.dev"
+      - "habitat/builder-datastore"
     hostname: datastore
     domainname: habitat.dev
     volumes:
